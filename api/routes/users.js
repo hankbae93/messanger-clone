@@ -55,4 +55,48 @@ router.get("/:id", async (req, res) => {
 	}
 });
 
+// 팔로우
+router.put("/:id/follow", async (req, res) => {
+	if (req.body.userId !== req.params.id) {
+		try {
+			const user = await User.findById(req.params.id);
+			const currentUser = await User.findById(req.body.userId);
+
+			if (!user.followers.includes(req.body.userId)) {
+				await user.updateOne({ $push: { followers: req.body.userId } });
+				await currentUser.updateOne({ $push: { followings: req.body.userId } });
+				res.status(200).json("팔로우되셨습니다.");
+			} else {
+				res.status(403).json("이미 팔로우한 유저입니다.");
+			}
+		} catch (error) {
+			res.status(500).json(error);
+		}
+	} else {
+		res.status(403).json("자기 자신을 팔로우할 수 없습니다.");
+	}
+});
+
+// 언팔로우
+router.put("/:id/follow", async (req, res) => {
+	if (req.body.userId !== req.params.id) {
+		try {
+			const user = await User.findById(req.params.id);
+			const currentUser = await User.findById(req.body.userId);
+
+			if (user.followers.includes(req.body.userId)) {
+				await user.updateOne({ $pull: { followers: req.body.userId } });
+				await currentUser.updateOne({ $pull: { followings: req.body.userId } });
+				res.status(200).json("언팔로우되셨습니다.");
+			} else {
+				res.status(403).json("팔로우하고 있지 않습니다.");
+			}
+		} catch (error) {
+			res.status(500).json(error);
+		}
+	} else {
+		res.status(403).json("자기 자신을 팔로우할 수 없습니다.");
+	}
+});
+
 module.exports = router;
