@@ -44,9 +44,13 @@ router.delete("/:id", async (req, res) => {
 });
 
 // 유저 정보 조회하기
-router.get("/:id", async (req, res) => {
+router.get("/", async (req, res) => {
+	const userId = req.query.userId;
+	const username = req.query.username;
 	try {
-		const user = await User.findById(req.params.id);
+		const user = userId
+			? await User.findById(userId)
+			: await User.findOne({ username });
 		const { password, updatedAt, ...others } = user._doc; // mysql의 squelize에서 exclude하듯이 제외가능
 
 		res.status(200).json(others);

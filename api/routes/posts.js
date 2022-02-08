@@ -75,10 +75,10 @@ router.get("/:id", async (req, res) => {
 });
 
 // 전체 게시글 타임라인 조회
-router.get("/timeline/all", async (req, res) => {
+router.get("/timeline/:userId", async (req, res) => {
 	try {
 		// 현재 유저 정보 가져오기
-		const currentUser = await User.findById(req.body.userId);
+		const currentUser = await User.findById(req.params.userId);
 		// 현재 유저의 작성글 찾기
 		const userPosts = await Post.find({ userId: currentUser._id });
 		// 현재 유저의 팔로우 리스트 멤버의 작성글 가져오기
@@ -89,6 +89,19 @@ router.get("/timeline/all", async (req, res) => {
 		);
 
 		res.status(200).json(userPosts.concat(...friendPosts));
+	} catch (error) {
+		res.status(500).json(error);
+	}
+});
+
+// 해당 유저 전체 게시글 가져오기
+router.get("/profile/:username", async (req, res) => {
+	try {
+		const user = await User.findOne({ username: req.params.username });
+		console.log(user);
+		const posts = await Post.find({ userId: user._id });
+		console.log(posts);
+		res.status(200).json(posts);
 	} catch (error) {
 		res.status(500).json(error);
 	}
