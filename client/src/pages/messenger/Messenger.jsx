@@ -19,6 +19,18 @@ export default function Messenger() {
 	const scrollRef = useRef();
 
 	useEffect(() => {
+		const getConversations = async () => {
+			try {
+				const res = await axios.get(`/conversation/${user._id}`);
+				setConversations(res.data);
+			} catch (err) {
+				console.log(err);
+			}
+		};
+		getConversations();
+	}, [user._id]);
+
+	useEffect(() => {
 		scrollRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [messages]);
 
