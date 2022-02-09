@@ -21,12 +21,20 @@ export default function Messenger() {
 
 	useEffect(() => {
 		socket.current = io("ws://localhost:8900");
+		socket.current.on("getMessage", (data) => {
+			setArrivalMessage({
+				sender: data.senderId,
+				text: data.text,
+				createdAt: Date.now(),
+			});
+		});
 	}, []);
 
 	useEffect(() => {
 		socket.current.emit("addUser", user._id);
 		socket.current.on("getUsers", (users) => {
 			console.log(users);
+			setOnlineUsers(users);
 		});
 	}, [user]);
 
@@ -61,6 +69,16 @@ export default function Messenger() {
 			text: newMessage,
 			conversationId: currentChat._id,
 		};
+
+		const receiverId = currentChat.members.find(
+			(member) => member !== user._id
+		);
+
+		socket.current.emit("sendMessage", {
+			senderId: user._id,
+			receiverId,
+			text: newMessage,
+		});
 		try {
 			const res = await axios.post(`/message`, message);
 			setMessages((prev) => prev.concat(res.data));
@@ -69,6 +87,12 @@ export default function Messenger() {
 			console.log(err);
 		}
 	};
+
+	useEffect(() => {
+		arrivalMessage &&
+			currentChat?.members.includes(arrivalMessage.sender) &&
+			setMessages((prev) => prev.concat(arrivalMessage));
+	}, [arrivalMessage, currentChat]);
 
 	useEffect(() => {
 		scrollRef.current?.scrollIntoView({ behavior: "smooth" });
