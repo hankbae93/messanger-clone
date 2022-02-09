@@ -6,6 +6,7 @@ import ChatOnline from "../../components/chatOnline/ChatOnline";
 import { useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import axios from "axios";
+import { io } from "socket.io-client";
 
 export default function Messenger() {
 	const [conversations, setConversations] = useState([]);
@@ -14,9 +15,20 @@ export default function Messenger() {
 	const [newMessage, setNewMessage] = useState("");
 	const [arrivalMessage, setArrivalMessage] = useState(null);
 	const [onlineUsers, setOnlineUsers] = useState([]);
-
 	const { user } = useContext(AuthContext);
 	const scrollRef = useRef();
+	const socket = useRef();
+
+	useEffect(() => {
+		socket.current = io("ws://localhost:8900");
+	}, []);
+
+	useEffect(() => {
+		socket.current.emit("addUser", user._id);
+		socket.current.on("getUsers", (users) => {
+			console.log(users);
+		});
+	}, [user]);
 
 	useEffect(() => {
 		const getConversations = async () => {
@@ -59,7 +71,7 @@ export default function Messenger() {
 	};
 
 	useEffect(() => {
-		scrollRef?.current.scrollIntoView({ behavior: "smooth" });
+		scrollRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [messages]);
 
 	return (
