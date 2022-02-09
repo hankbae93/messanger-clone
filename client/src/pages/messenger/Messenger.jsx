@@ -31,7 +31,35 @@ export default function Messenger() {
 	}, [user._id]);
 
 	useEffect(() => {
-		scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+		const getMessages = async () => {
+			try {
+				const res = await axios.get(`/message/${currentChat?._id}`);
+				setMessages(res.data);
+			} catch (err) {
+				console.log(err);
+			}
+		};
+		getMessages();
+	}, [currentChat]);
+
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		const message = {
+			sender: user._id,
+			text: newMessage,
+			conversationId: currentChat._id,
+		};
+		try {
+			const res = await axios.post(`/message`, message);
+			setMessages((prev) => prev.concat(res.data));
+			setNewMessage("");
+		} catch (err) {
+			console.log(err);
+		}
+	};
+
+	useEffect(() => {
+		scrollRef?.current.scrollIntoView({ behavior: "smooth" });
 	}, [messages]);
 
 	return (
@@ -66,7 +94,9 @@ export default function Messenger() {
 										onChange={(e) => setNewMessage(e.target.value)}
 										value={newMessage}
 									></textarea>
-									<button className='chatSubmitButton'>Send</button>
+									<button className='chatSubmitButton' onClick={handleSubmit}>
+										Send
+									</button>
 								</div>
 							</>
 						) : (
