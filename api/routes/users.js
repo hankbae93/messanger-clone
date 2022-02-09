@@ -82,7 +82,7 @@ router.put("/:id/follow", async (req, res) => {
 });
 
 // 언팔로우
-router.put("/:id/follow", async (req, res) => {
+router.put("/:id/unfollow", async (req, res) => {
 	if (req.body.userId !== req.params.id) {
 		try {
 			const user = await User.findById(req.params.id);
@@ -100,6 +100,26 @@ router.put("/:id/follow", async (req, res) => {
 		}
 	} else {
 		res.status(403).json("자기 자신을 팔로우할 수 없습니다.");
+	}
+});
+
+// 사용자 친구 조회
+router.get("/friends/:userId", async (req, res) => {
+	try {
+		const user = await User.findById(req.params.userId);
+		const friends = await Promise.all(
+			user.followings.map((friendId) => {
+				return User.findById(friendId);
+			})
+		);
+		let friendList = [];
+		friends.map((friend) => {
+			const { _id, username, profilePicture } = friend;
+			friendList.push({ _id, username, profilePicture });
+		});
+		res.status(200).json(friendList);
+	} catch (err) {
+		res.status(500).json(err);
 	}
 });
 
